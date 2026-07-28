@@ -1,6 +1,6 @@
 <script lang="ts">
 	import BalatroButton from '$lib/components/BalatroButton.svelte';
-	import PixelAvatar from '$lib/components/PixelAvatar.svelte';
+	import NameCard from '$lib/components/NameCard.svelte';
 	import type { Profile, ScreenId } from '$lib/types.js';
 
 	let { profile, onNavigate }: { profile: Profile; onNavigate: (s: ScreenId) => void } = $props();
@@ -15,11 +15,13 @@
 </script>
 
 <div class="menu">
-	<div class="menu-hero">
-		<PixelAvatar src={profile.avatar} size={96} />
-		<h1 class="menu-name outline-text">{profile.name.toUpperCase().split('').join(' ')}</h1>
-		<p class="menu-tagline outline-text">~ {profile.role} · {profile.alias} ~</p>
-	</div>
+	<NameCard
+		name={profile.name}
+		role={profile.role}
+		alias={profile.alias}
+		avatar={profile.avatar}
+		edition="foil"
+	/>
 	<div class="menu-buttons">
 		{#each menuItems as item}
 			<BalatroButton
@@ -45,24 +47,6 @@
 		height: 100%;
 		animation: menuIn var(--dur-slow) var(--ease-out);
 	}
-	.menu-hero {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: var(--sp-3);
-		animation: float 4s ease-in-out infinite;
-	}
-	.menu-name {
-		font-family: var(--font-main);
-		font-size: var(--text-display);
-		color: var(--text);
-		letter-spacing: 4px;
-	}
-	.menu-tagline {
-		font-family: var(--font-small);
-		font-size: var(--text-body);
-		color: var(--text-dim);
-	}
 	.menu-buttons {
 		display: flex;
 		flex-direction: column;
@@ -76,16 +60,8 @@
 		opacity: 0.5;
 	}
 
-	@keyframes float {
-		0%, 100% { transform: translateY(0); }
-		50% { transform: translateY(-6px); }
-	}
 	@keyframes menuIn {
 		from { opacity: 0; transform: scale(0.95); }
 		to { opacity: 1; transform: scale(1); }
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.menu-hero { animation: none; }
 	}
 </style>
