@@ -1,5 +1,6 @@
 import { asc } from 'drizzle-orm';
 import { db, schema } from '$lib/server/db/index.js';
+import { cached, invalidatePrefix } from '$lib/server/cache.js';
 import type { Profile, Project, Skill, Experience, Social } from '$lib/types.js';
 
 // Data statis (placeholder) untuk fallback bila DB tak terjangkau.
@@ -10,6 +11,13 @@ import { experiences as seedExperiences } from '$lib/data/experience.js';
 import { socials as seedSocials } from '$lib/data/socials.js';
 
 const { profile, profileStats, projects, skills, experiences, socials } = schema;
+
+/** Jendela segar cache konten (ms). Setelah ini, request berikutnya hit DB lagi. */
+export const CONTENT_TTL_MS = 60_000;
+
+/** Prefix bersama seluruh cache konten (publik + list admin) untuk invalidasi. */
+const CONTENT_CACHE_PREFIX = 'content:';
+export const PUBLIC_CONTENT_KEY = `${CONTENT_CACHE_PREFIX}public`;
 
 export async function getProfile(): Promise<Profile | null> {
 	const rows = await db.select().from(profile).limit(1);
@@ -99,20 +107,30 @@ export const FALLBACK_PROFILE: Profile = {
 };
 
 export async function getPublicContent(): Promise<PublicContent> {
-	const [prof, projs, sk, exp, soc] = await Promise.all([
-		getProfile(),
-		getProjects(),
-		getSkills(),
-		getExperiences(),
-		getSocials()
-	]);
-	return {
-		profile: prof ?? FALLBACK_PROFILE,
-		projects: projs,
-		skills: sk,
-		experiences: exp,
-		socials: soc
-	};
+	return cached(PUBLIC_CONTENT_KEY, CONTENT_TTL_MS, async () => {
+		const [prof, projs, sk, exp, soc] = await Promise.all([
+			getProfile(),
+			getProjects(),
+			getSkills(),
+			getExperiences(),
+			getSocials()
+		]);
+		return {
+			profile: prof ?? FALLBACK_PROFILE,
+			projects: projs,
+			skills: sk,
+			experiences: exp,
+			socials: soc
+		};
+	});
+}
+
+/**
+ * Kosongkan seluruh cache konten (halaman publik + list admin).
+ * Panggil setelah operasi tulis admin agar perubahan segera terlihat.
+ */
+export function invalidateContentCache(): void {
+	invalidatePrefix(CONTENT_CACHE_PREFIX);
 }
 
 /** Konten fallback dari data statis bila database tidak terjangkau. */

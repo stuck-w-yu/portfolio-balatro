@@ -1,6 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { db, schema } from '$lib/server/db/index.js';
+import { invalidateContentCache } from '$lib/server/content.js';
 import { toInt, str } from '$lib/server/form-utils.js';
 
 const EMPTY = {
@@ -55,11 +56,13 @@ export const actions = {
 		if (!v.role) return fail(400, { error: 'Peran wajib diisi.', values: v });
 		if (id) await db.update(schema.experiences).set(v).where(eq(schema.experiences.id, id));
 		else await db.insert(schema.experiences).values(v);
+		invalidateContentCache();
 		throw redirect(303, '/admin/experiences');
 	},
 	delete: async ({ params }) => {
 		const id = params.id ? Number(params.id) : null;
 		if (id) await db.delete(schema.experiences).where(eq(schema.experiences.id, id));
+		invalidateContentCache();
 		throw redirect(303, '/admin/experiences');
 	}
 };

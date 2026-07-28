@@ -1,6 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { asc, eq } from 'drizzle-orm';
 import { db, schema } from '$lib/server/db/index.js';
+import { invalidateContentCache } from '$lib/server/content.js';
 import { str } from '$lib/server/form-utils.js';
 
 export const load = async () => {
@@ -54,6 +55,7 @@ export const actions = {
 			);
 		}
 
+		invalidateContentCache();
 		throw redirect(303, '/admin/profile?saved=1');
 	}
 };
