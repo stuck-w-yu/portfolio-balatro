@@ -1,4 +1,4 @@
-// See https://svelte.dev/docs/kit/types#app.d.ts  
+// See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
 declare global {
 	namespace App {
@@ -7,7 +7,7 @@ declare global {
 			user: { id: number; username: string } | null;
 			sessionToken: string | null;
 		}
-		// interface PageData {}
+		// interface PageData {}v
 		// interface PageState {}
 		// interface Platform {}
 	}
