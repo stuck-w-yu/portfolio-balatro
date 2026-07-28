@@ -20,10 +20,12 @@ function cfg() {
 /** Ekstrak folder id dari URL Drive atau terima id mentah. */
 export function getFolderId(): string {
 	const raw = cfg().folderRaw.trim();
-	const m = raw.match(/folders\/([A-Za-z0-9_-]+)/);
+	// Buang query string/hash (mis. ?hl=ID) agar id bersih.
+	const clean = raw.split('?')[0].split('#')[0];
+	const m = clean.match(/folders\/([A-Za-z0-9_-]+)/);
 	if (m) return m[1];
-	if (/^[A-Za-z0-9_-]+$/.test(raw)) return raw;
-	return raw;
+	if (/^[A-Za-z0-9_-]+$/.test(clean)) return clean;
+	return clean;
 }
 
 export function driveConfigured(): boolean {

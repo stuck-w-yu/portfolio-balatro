@@ -26,7 +26,10 @@
 			const res = await fetch('/admin/upload', { method: 'POST', body: fd });
 			if (!res.ok) {
 				let msg = 'Upload gagal';
-				try { msg = (await res.json())?.message ?? msg; } catch { /* ignore */ }
+				try {
+					const d = await res.json();
+					msg = d?.error ?? d?.message ?? msg;
+				} catch { /* ignore */ }
 				throw new Error(msg);
 			}
 			const data = await res.json();

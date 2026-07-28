@@ -1,4 +1,5 @@
 import { google } from 'googleapis';
+import { Readable } from 'node:stream';
 import { getAuthorizedClient, getFolderId } from './oauth.js';
 
 export async function isDriveConnected(): Promise<boolean> {
@@ -14,9 +15,10 @@ export async function uploadToDrive(
 	const auth = await getAuthorizedClient();
 	if (!auth) throw new Error('Google Drive belum terhubung. Hubungkan di menu Settings.');
 	const drive = google.drive({ version: 'v3', auth });
+	// googleapis versi ini mengharapkan media.body berupa stream, bukan Buffer.
 	const res = await drive.files.create({
 		requestBody: { name: filename, parents: [getFolderId()] },
-		media: { mimeType, body: buffer },
+		media: { mimeType, body: Readable.from(buffer) },
 		fields: 'id'
 	});
 	if (!res.data.id) throw new Error('Gagal upload ke Drive: id tidak dikembalikan.');
