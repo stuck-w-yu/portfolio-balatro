@@ -2,6 +2,13 @@ import { asc } from 'drizzle-orm';
 import { db, schema } from '$lib/server/db/index.js';
 import type { Profile, Project, Skill, Experience, Social } from '$lib/types.js';
 
+// Data statis (placeholder) untuk fallback bila DB tak terjangkau.
+import { profile as seedProfile } from '$lib/data/profile.js';
+import { projects as seedProjects } from '$lib/data/projects.js';
+import { skills as seedSkills } from '$lib/data/skills.js';
+import { experiences as seedExperiences } from '$lib/data/experience.js';
+import { socials as seedSocials } from '$lib/data/socials.js';
+
 const { profile, profileStats, projects, skills, experiences, socials } = schema;
 
 export async function getProfile(): Promise<Profile | null> {
@@ -105,5 +112,16 @@ export async function getPublicContent(): Promise<PublicContent> {
 		skills: sk,
 		experiences: exp,
 		socials: soc
+	};
+}
+
+/** Konten fallback dari data statis bila database tidak terjangkau. */
+export function getFallbackContent(): PublicContent {
+	return {
+		profile: seedProfile,
+		projects: seedProjects,
+		skills: seedSkills,
+		experiences: seedExperiences,
+		socials: seedSocials
 	};
 }

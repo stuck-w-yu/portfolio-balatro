@@ -10,7 +10,15 @@ function getUrl(): string {
 }
 
 // prepare: false → aman untuk serverless / connection pooler (Vercel).
-const client = postgres(getUrl(), { prepare: false, max: 1 });
+// connect_timeout: gagal cepat (10s) bila DB tak terjangkau, agar tidak menggantung
+// (yang memicu error 524 dari Cloudflare).
+const client = postgres(getUrl(), {
+	prepare: false,
+	max: 1,
+	connect_timeout: 10,
+	idle_timeout: 20,
+	max_lifetime: 60 * 30
+});
 
 export const db = drizzle(client, { schema });
 export { schema };
