@@ -2,12 +2,12 @@ import type { Handle } from '@sveltejs/kit';
 import { getSessionUser, SESSION_COOKIE } from '$lib/server/auth/session.js';
 
 export const handle: Handle = async ({ event, resolve }) => {
-	const token = event.cookies.get(SESSION_COOKIE) ?? null;
-	event.locals.sessionToken = token;
-
-	// Hanya validasi session (hit DB) untuk route admin. Route publik/api/gambar
-	// tidak memakai `locals.user`, jadi bebas overhead DB dan lebih mudah di-cache.
+	// Hanya sentuh cookie/DB untuk route admin. Route publik sengaja dibiarkan bebas
+	// cookie agar responsnya bisa di-cache publik oleh CDN — SvelteKit menandai
+	// respons "private" (tak cacheable CDN) bila `event.cookies` diakses.
 	if (event.url.pathname.startsWith('/admin')) {
+		const token = event.cookies.get(SESSION_COOKIE) ?? null;
+		event.locals.sessionToken = token;
 		try {
 			event.locals.user = await getSessionUser(token);
 		} catch (e) {
@@ -16,6 +16,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 			event.locals.user = null;
 		}
 	} else {
+		event.locals.sessionToken = null;
 		event.locals.user = null;
 	}
 

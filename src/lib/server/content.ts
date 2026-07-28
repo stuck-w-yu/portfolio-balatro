@@ -20,10 +20,14 @@ const CONTENT_CACHE_PREFIX = 'content:';
 export const PUBLIC_CONTENT_KEY = `${CONTENT_CACHE_PREFIX}public`;
 
 export async function getProfile(): Promise<Profile | null> {
-	const rows = await db.select().from(profile).limit(1);
+	// Jalankan kedua query bersamaan agar bisa di-pipeline di satu koneksi
+	// (sebelumnya `stats` menunggu `profile` selesai → menambah 1 RTT sia-sia).
+	const [rows, stats] = await Promise.all([
+		db.select().from(profile).limit(1),
+		db.select().from(profileStats).orderBy(asc(profileStats.sort))
+	]);
 	const p = rows[0];
 	if (!p) return null;
-	const stats = await db.select().from(profileStats).orderBy(asc(profileStats.sort));
 	return {
 		name: p.name,
 		alias: p.alias,
